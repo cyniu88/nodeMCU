@@ -1,12 +1,12 @@
 #include "PCF8574.h"
 
-PCF8574::PCF8574() {
-  Wire.begin(D2, D1);
+PCF8574::PCF8574(byte scl, byte sda) {
+  Wire.begin(scl, sda);
   clearAll();
 }
-PCF8574::PCF8574(byte addr): m_addr(addr)
+PCF8574::PCF8574(byte scl, byte sda, byte addr): m_addr(addr)
 {
-  Wire.begin(D2, D1);
+  Wire.begin(scl, sda);
   clearAll();
 }
 

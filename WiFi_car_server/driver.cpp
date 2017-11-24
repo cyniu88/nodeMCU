@@ -14,7 +14,7 @@ void Driver::runMotor(int speed_) {
   }
   else if (speed_ == 0) {
     if (mainSTATE != Zero){
-      mainSTATE =Zero;
+      mainSTATE = Zero;
     }
     engine->hard_stop();
   }

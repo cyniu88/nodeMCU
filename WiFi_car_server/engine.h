@@ -7,9 +7,9 @@ class Engine {
     int pwm;
     int BN1;
     int BN2;
-    PCF8574 pcf8574;
+    PCF8574 *pcf8574;
     public:
-    Engine();
+    Engine(PCF8574 *pcf);
     void init(int pwm, int BN1, int BN2);
     void go_forward(int power);
     void go_back   (int power);

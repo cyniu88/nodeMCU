@@ -7,6 +7,7 @@
 #include "engine.h"
 #include "driver.h"
 #include "stopLight.h"
+#include "PCF8574.h"
 
 int kat;
 int counter           = 0;
@@ -19,9 +20,11 @@ const int  servoLeft  = 0;
 const int  servoRight = 86;
 //int stopLedTimer     = STOP_LED_TIMER;
 
-Engine mainMotor;
+PCF8574 mainPCF8574(D2, D1, 0x20);
+
+Engine mainMotor(&mainPCF8574);
 Driver mainDriver(&mainMotor);
-Engine externalMotor;
+Engine externalMotor(&mainPCF8574);
 Driver externalDriver(&externalMotor);
 Light lightFront(FRONT_LED);
 Light lightBack (BACK_LED);
@@ -85,6 +88,8 @@ void working() {
   counter = 0;
   String req;
   String s;
+  int externalSpeed_            = 0;
+  String externalSpeed_s;
   while (1) {
     // Serial.println("wait");
     while (!client.available()) {
@@ -108,7 +113,7 @@ void working() {
     if (req == "SLEEP") {
       ESP.deepSleep(10000000);
     }
-//////////////////////////////////// steering wheel ////////////////////////////////
+    //////////////////////////////////// steering wheel ////////////////////////////////
     kat_s = req.substring(10, 14);
     //Serial.print("kat str: ");
     //Serial.println(kat_s);
@@ -116,13 +121,7 @@ void working() {
     kat = map(kat, -100, 100, servoLeft, servoRight);
     servomotor.write(kat);
 
-    ////////////////////////////////////  motor /////////////////////////////////
-    speed_s = req.substring(5, 9);
-    speed_ = speed_s.toInt();
-    mainDriver.runMotor(speed_);
-    mainStopLight.handle(speed_);
-
-/////////////////////////////////////// low beam /////////////////////////////////
+    /////////////////////////////////////// low beam /////////////////////////////////
     if (1 == req.substring(20, 21).toInt()) {
 
       lightFront.turnON();
@@ -132,23 +131,29 @@ void working() {
       lightFront.turnOFF();
       lightBack.turnOFF();
     }
-///////////////////////////////////////// high beam ///////////////////////////////
+    ///////////////////////////////////////// high beam ///////////////////////////////
     if (1 == req.substring(22, 23).toInt()) {
       lightFront.maximal();
     }
     else {
       lightFront.maximalEnd();
     }
+    ////////////////////////////////////////  motor /////////////////////////////////
+    speed_s = req.substring(5, 9);
+    speed_ = speed_s.toInt();
+    mainDriver.runMotor(speed_);
+    mainStopLight.handle(speed_);
 
-//////////////////////////////////////// trailer mechanism //////////////////////////
+    //////////////////////////////////////// trailer mechanism //////////////////////////
     if (1 == req.substring(24, 25).toInt()) {
-      speed_s = req.substring(15, 19);
-      speed_ = speed_s.toInt();
-      externalDriver.runMotor(speed_);
+      externalSpeed_s = req.substring(15, 19);
+      externalSpeed_ = externalSpeed_s.toInt();
+      
+      externalDriver.runMotor(externalSpeed_);
     }
-    s = req + " volt " + analogRead(A0) ;
+    s = String(externalSpeed_, DEC) + " volt " + analogRead(A0) ;
 
-///////////////////////////////////// Send the response to the client
+    ///////////////////////////////////// Send the response to the client
     client.print(s);
     delay(1);
   }
@@ -161,6 +166,8 @@ void loop() {
   working();
   mainMotor.hard_stop();
   externalMotor.hard_stop();
+  lightFront.turnOFF();
+  lightBack.turnOFF();
 }
 
 
