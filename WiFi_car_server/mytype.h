@@ -19,7 +19,9 @@
 #define IN2         P6      // GPIO 4                       P6
 #define PWMa        D8      // GPIO 0    2 silnik  D3      1 D8
 #define SERVO_PIN   D7      // GPIO 13
-
+#define EXTERNAL_IN1 P4
+#define EXTERNAL_IN2 P4
+#define EXTERNAL_PWM D3
 #define STOP_LED_TIMER  60
 struct Wifi_data {
   String ssid;

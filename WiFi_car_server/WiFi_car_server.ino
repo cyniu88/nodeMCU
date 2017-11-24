@@ -21,6 +21,8 @@ const int  servoRight = 86;
 
 Engine mainMotor;
 Driver mainDriver(&mainMotor);
+Engine externalMotor;
+Driver externalDriver(&externalMotor);
 Light lightFront(FRONT_LED);
 Light lightBack (BACK_LED);
 StopLight mainStopLight(&lightBack, STOP_LED_TIMER);
@@ -38,6 +40,7 @@ void setup() {
   servomotor.attach(SERVO_PIN);
   servomotor.write(60);
   mainMotor.init(PWMa, IN1, IN2);
+  externalMotor.init(EXTERNAL_PWM, EXTERNAL_IN1, EXTERNAL_IN2);
   lightBack.turnOFF();
   lightFront.turnOFF();
 
@@ -80,6 +83,8 @@ void wait_for_client() {
 void working() {
   digitalWrite(LED, 1);
   counter = 0;
+  String req;
+  String s;
   while (1) {
     // Serial.println("wait");
     while (!client.available()) {
@@ -87,11 +92,11 @@ void working() {
       // Serial.println("czekam");
       // Serial.println(counter,DEC);
       mainMotor.hard_stop();
-
+      externalMotor.hard_stop();
     }
 
     // Read the first line of the request
-    String req = client.readStringUntil('#');
+    req = client.readStringUntil('#');
 
     client.flush();
     //Serial.println("odebralem: " + req);
@@ -103,28 +108,21 @@ void working() {
     if (req == "SLEEP") {
       ESP.deepSleep(10000000);
     }
-
+//////////////////////////////////// steering wheel ////////////////////////////////
     kat_s = req.substring(10, 14);
     //Serial.print("kat str: ");
     //Serial.println(kat_s);
     kat = kat_s.toInt();
     kat = map(kat, -100, 100, servoLeft, servoRight);
-    //Serial.print("kat int: ");
-
-    //Serial.println(kat);
     servomotor.write(kat);
+
+    ////////////////////////////////////  motor /////////////////////////////////
     speed_s = req.substring(5, 9);
-    //Serial.print("speed str: ");
-    // Serial.println(speed_s);
     speed_ = speed_s.toInt();
-    //Serial.print("speed_int: ");
-    //Serial.println(speed_);
-
     mainDriver.runMotor(speed_);
-
     mainStopLight.handle(speed_);
 
-
+/////////////////////////////////////// low beam /////////////////////////////////
     if (1 == req.substring(20, 21).toInt()) {
 
       lightFront.turnON();
@@ -134,6 +132,7 @@ void working() {
       lightFront.turnOFF();
       lightBack.turnOFF();
     }
+///////////////////////////////////////// high beam ///////////////////////////////
     if (1 == req.substring(22, 23).toInt()) {
       lightFront.maximal();
     }
@@ -141,22 +140,27 @@ void working() {
       lightFront.maximalEnd();
     }
 
-    String s = req + " volt " + analogRead(A0) ;
-    //Serial.println(s);
-    // Send the response to the client
+//////////////////////////////////////// trailer mechanism //////////////////////////
+    if (1 == req.substring(24, 25).toInt()) {
+      speed_s = req.substring(15, 19);
+      speed_ = speed_s.toInt();
+      externalDriver.runMotor(speed_);
+    }
+    s = req + " volt " + analogRead(A0) ;
+
+///////////////////////////////////// Send the response to the client
     client.print(s);
     delay(1);
-    // Serial.println("done :)");
-
-    // The client will actually be disconnected
-    // when the function returns and 'client' object is detroyed
   }
 }  // end working
+
+
 void loop() {
   wait_for_client();
   // Wait until the client sends some data
   working();
   mainMotor.hard_stop();
+  externalMotor.hard_stop();
 }
 
 
