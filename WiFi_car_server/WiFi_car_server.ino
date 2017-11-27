@@ -10,17 +10,17 @@
 #include "PCF8574.h"
 
 int kat;
-int counter           = 0;
-int speed_            = 0;
+int counter = 0;
+int speed_  = 0;
 String speed_s;
 String kat_s;
-constexpr int port    = 8833;
+constexpr int port = 8833;
 
-const int  servoLeft  = 0;
+const int  servoLeft = 0;
 const int  servoRight = 86;
 //int stopLedTimer     = STOP_LED_TIMER;
 
-PCF8574 mainPCF8574(D2, D1, 0x20);
+PCF8574 mainPCF8574(i2c_SDA, i2c_SCL, 0x20);
 
 Engine mainMotor(&mainPCF8574);
 Driver mainDriver(&mainMotor);
@@ -38,7 +38,6 @@ Servo servomotor;
 void setup() {
   Serial.begin(74880);
   while (!Serial) {
-
   }
   servomotor.attach(SERVO_PIN);
   servomotor.write(60);
@@ -76,7 +75,9 @@ void wait_for_client() {
     client = server.available();
     if (!client) {
       // Serial.print(".");
-    } else {
+    }
+    else
+    {
       break;
     }
   }
@@ -144,22 +145,20 @@ void working() {
     mainDriver.runMotor(speed_);
     mainStopLight.handle(speed_);
 
-    //////////////////////////////////////// trailer mechanism //////////////////////////
+    //////////////////////////////////////// trailer mechanism  /////////////////////////////////
     if (1 == req.substring(24, 25).toInt()) {
       externalSpeed_s = req.substring(15, 19);
       externalSpeed_ = externalSpeed_s.toInt();
-      
       externalDriver.runMotor(externalSpeed_);
     }
     s = String(externalSpeed_, DEC) + " volt " + analogRead(A0) ;
 
-    ///////////////////////////////////// Send the response to the client
+   /////////////////////////////////////// Send the response to the client  /////////////////////
     client.print(s);
     delay(1);
   }
 }  // end working
-
-
+//////////////////////////////////////////// main() /////////////////////////////////////////////
 void loop() {
   wait_for_client();
   // Wait until the client sends some data
@@ -169,5 +168,4 @@ void loop() {
   lightFront.turnOFF();
   lightBack.turnOFF();
 }
-
 

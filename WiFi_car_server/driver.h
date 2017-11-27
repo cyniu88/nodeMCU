@@ -18,5 +18,4 @@ class Driver
   Driver(Engine * e);
   void runMotor(int speed_);
 };
-
 #endif
