@@ -11,10 +11,6 @@ void setupWiFi() {
   Wifi_data data[networkNumber];
   data[0].ssid      = "cyniu";
   data[0].password  = "123456789";
-  data[1].ssid      = "staniki_w_gore";
-  data[1].password  = "kiniacynia_458";
-  data[2].ssid      =  "EPOL_kd@012" ;
-  data[2].password  = "epolepol";
   WiFi.mode(WIFI_STA);
 
   for (int i = 0 ; i < networkNumber; ++i) {
