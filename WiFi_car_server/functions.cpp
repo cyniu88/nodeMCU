@@ -7,7 +7,7 @@ void setupWiFi() {
   Light lightFront(FRONT_LED);
   Light lightBack  (BACK_LED);
   bool ledState = true;
-  const int networkNumber = 3;
+  const int networkNumber = 1;
   Wifi_data data[networkNumber];
   data[0].ssid      = "cyniu";
   data[0].password  = "123456789";
